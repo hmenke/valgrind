@@ -87,19 +87,20 @@ void randBlock ( Block* b )
    __asm__ __volatile__( \
          "vmovdqa64   0(%0),%%zmm7"  "\n\t" \
          "vmovdqa64  64(%0),%%zmm8"  "\n\t" \
-         "vmovdqa64 128(%0),%%zmm18"  "\n\t" \
-         "vmovdqa64 192(%0),%%zmm24"  "\n\t" \
+         "vmovdqa64 128(%0),%%zmm18" "\n\t" \
+         "vmovdqa64 192(%0),%%zmm24" "\n\t" \
          "movq      256(%0),%%r14"   "\n\t" \
-         "kmovw   264(%0),%%k4"    "\n\t" \
-         "kmovw   272(%0),%%k5"    "\n\t" \
+         "kmovw     264(%0),%%k4"    "\n\t" \
+         "kmovw     272(%0),%%k5"    "\n\t" \
+         "kmovw       0(%0),%%k0"    "\n\t" /* Make sure the emulation does not rely on k0 being 0 */ \
          _reg_form   "\n\t" \
          "vmovdqa64 %%zmm7,  0(%0)"  "\n\t" \
          "vmovdqa64 %%zmm8, 64(%0)"  "\n\t" \
-         "vmovdqa64 %%zmm18,128(%0)"  "\n\t" \
-         "vmovdqa64 %%zmm24,192(%0)"  "\n\t" \
-         "movq      %%r14, 256(%0)"  "\n\t" \
-         "kmovw   %%k4,  264(%0)"  "\n\t" \
-         "kmovw   %%k5,  272(%0)"  "\n\t" \
+         "vmovdqa64 %%zmm18,128(%0)" "\n\t" \
+         "vmovdqa64 %%zmm24,192(%0)" "\n\t" \
+         "movq        %%r14,256(%0)" "\n\t" \
+         "kmovw        %%k4,264(%0)" "\n\t" \
+         "kmovw        %%k5,272(%0)" "\n\t" \
          : /*OUT*/  \
          : /*IN*/"r"(b) \
          : /*TRASH*/"xmm0","xmm7","xmm8","r14","memory","cc" \
@@ -112,17 +113,18 @@ void randBlock ( Block* b )
          "vmovdqa64   0(%0),%%zmm8"  "\n\t" \
          "leaq        0(%0),%%rax"   "\n\t" /* tests will use 64(%0) */ \
          "vmovdqa64 128(%0),%%zmm7"  "\n\t" \
-         "vmovdqa64 192(%0),%%zmm24"  "\n\t" \
+         "vmovdqa64 192(%0),%%zmm24" "\n\t" \
          "movq      256(%0),%%r14"   "\n\t" \
-         "kmovw   264(%0),%%k4"    "\n\t" \
-         "kmovw   272(%0),%%k5"    "\n\t" \
+         "kmovw     264(%0),%%k4"    "\n\t" \
+         "kmovw     272(%0),%%k5"    "\n\t" \
+         "kmovw       0(%0),%%k0"    "\n\t" \
          _mem_form   "\n\t" \
          "vmovdqa64 %%zmm8, 64(%0)"  "\n\t" \
          "vmovdqa64 %%zmm7,128(%0)"  "\n\t" \
-         "vmovdqa64 %%zmm24,192(%0)"  "\n\t" \
+         "vmovdqa64 %%zmm24,192(%0)" "\n\t" \
          "movq      %%r14, 256(%0)"  "\n\t" \
-         "kmovw   %%k4,  264(%0)"  "\n\t" \
-         "kmovw   %%k5,  272(%0)"  "\n\t" \
+         "kmovw     %%k4,  264(%0)"  "\n\t" \
+         "kmovw     %%k5,  272(%0)"  "\n\t" \
          : /*OUT*/  \
          : /*IN*/"r"(b) \
          : /*TRASH*/"xmm0","xmm7","xmm8","r14","rax","memory","cc" \
