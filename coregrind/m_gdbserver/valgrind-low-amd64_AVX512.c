@@ -1,7 +1,8 @@
 /* Low level interface to valgrind, for the remote server for GDB integrated
    in valgrind. Access to ZMM and opmask (k) registers for AVX-512
-   Copyright (C) 2011
-   Free Software Foundation, Inc.
+
+   Copyright (C) 2021 Intel Corporation
+      tatyana.a.volnina@intel.com
 
    This file is part of VALGRIND.
    It has been inspired from a file from gdbserver in gdb 6.6.
@@ -17,9 +18,8 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+   along with this program; if not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifdef AVX_512
 

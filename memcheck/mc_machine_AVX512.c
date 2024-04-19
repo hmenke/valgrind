@@ -8,8 +8,8 @@
    This file is part of MemCheck, a heavyweight Valgrind tool for
    detecting memory errors.
 
-   Copyright (C) 2008-2017 OpenWorks Ltd
-      info@open-works.co.uk
+   Copyright (C) 2021 Intel Corporation
+      tatyana.a.volnina@intel.com
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -25,11 +25,6 @@
    along with this program; if not, see <http://www.gnu.org/licenses/>.
 
    The GNU General Public License is contained in the file COPYING.
-
-   Neither the names of the U.S. Department of Energy nor the
-   University of California nor the names of its contributors may be
-   used to endorse or promote products derived from this software
-   without prior written permission.
 */
 #ifdef AVX_512
 
