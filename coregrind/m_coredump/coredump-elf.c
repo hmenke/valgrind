@@ -607,11 +607,21 @@ static void fill_fpu(const ThreadState *tst, vki_elf_fpregset_t *fpu)
 //::    fpu->mxcsr_mask = ?;
 //::    fpu->st_space = ?;
 
+#ifdef AVX_512
+#  define DO(n)  VG_(memcpy)(fpu->xmm_space + n * 8, \
+                             &arch->vex.guest_ZMM##n[0], 32)
+   DO(0);  DO(1);  DO(2);  DO(3);  DO(4);  DO(5);  DO(6);  DO(7);
+   DO(8);  DO(9);  DO(10); DO(11); DO(12); DO(13); DO(14); DO(15);
+   DO(16); DO(17); DO(18); DO(19); DO(20); DO(21); DO(22); DO(23);
+   DO(24); DO(25); DO(26); DO(27); DO(28); DO(29); DO(30); DO(31);
+#  undef DO
+#else
 #  define DO(n)  VG_(memcpy)(fpu->xmm_space + n * 4, \
                              &arch->vex.guest_YMM##n[0], 16)
    DO(0);  DO(1);  DO(2);  DO(3);  DO(4);  DO(5);  DO(6);  DO(7);
    DO(8);  DO(9);  DO(10); DO(11); DO(12); DO(13); DO(14); DO(15);
 #  undef DO
+#endif
 
    VG_(memset)(fpu->padding, 0, sizeof(fpu->padding));
 

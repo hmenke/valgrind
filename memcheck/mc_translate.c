@@ -41,6 +41,7 @@
 #include "mc_include.h"
 
 
+
 /* FIXMEs JRS 2011-June-16.
 
    Check the interpretation for vector narrowing and widening ops,
@@ -485,7 +486,7 @@ static Bool sameKindedAtoms ( IRAtom* a1, IRAtom* a2 )
 /* Shadow state is always accessed using integer types.  This returns
    an integer type with the same size (as per sizeofIRType) as the
    given type.  The only valid shadow types are Bit, I8, I16, I32,
-   I64, I128, V128, V256. */
+   I64, I128, V128, V256, V512. */
 
 static IRType shadowTypeV ( IRType ty )
 {
@@ -505,6 +506,9 @@ static IRType shadowTypeV ( IRType ty )
       case Ity_D128: return Ity_I128;
       case Ity_V128: return Ity_V128;
       case Ity_V256: return Ity_V256;
+#ifdef AVX_512
+      case Ity_V512: return Ity_V512;
+#endif
       default: ppIRType(ty); 
                VG_(tool_panic)("memcheck:shadowTypeV");
    }
@@ -522,6 +526,9 @@ static IRExpr* definedOfType ( IRType ty ) {
       case Ity_I128: return i128_const_zero();
       case Ity_V128: return IRExpr_Const(IRConst_V128(0x0000));
       case Ity_V256: return IRExpr_Const(IRConst_V256(0x00000000));
+#ifdef AVX_512
+      case Ity_V512: return IRExpr_Const(IRConst_V512(0x0));
+#endif
       default:       VG_(tool_panic)("memcheck:definedOfType");
    }
 }
@@ -710,6 +717,10 @@ static IRAtom* mkUifUV256 ( MCEnv* mce, IRAtom* a1, IRAtom* a2 ) {
    return assignNew('V', mce, Ity_V256, binop(Iop_OrV256, a1, a2));
 }
 
+#ifdef AVX_512
+#include "mc_translate_AVX512.h"
+#endif
+
 static IRAtom* mkUifU ( MCEnv* mce, IRType vty, IRAtom* a1, IRAtom* a2 ) {
    switch (vty) {
       case Ity_I8:   return mkUifU8(mce, a1, a2);
@@ -719,6 +730,9 @@ static IRAtom* mkUifU ( MCEnv* mce, IRType vty, IRAtom* a1, IRAtom* a2 ) {
       case Ity_I128: return mkUifU128(mce, a1, a2);
       case Ity_V128: return mkUifUV128(mce, a1, a2);
       case Ity_V256: return mkUifUV256(mce, a1, a2);
+#ifdef AVX_512
+      case Ity_V512: return mkUifUV512(mce, a1, a2);
+#endif
       default:
          VG_(printf)("\n"); ppIRType(vty); VG_(printf)("\n");
          VG_(tool_panic)("memcheck:mkUifU");
@@ -1039,8 +1053,12 @@ static IRAtom* mkPCastTo( MCEnv* mce, IRType dst_ty, IRAtom* vbits )
          break;
       }
       default:
+#ifdef AVX_512
+         tmp1 = CollapseTo1( mce, vbits);
+#else
          ppIRType(src_ty);
          VG_(tool_panic)("mkPCastTo(1)");
+#endif
    }
    tl_assert(tmp1);
    /* Now widen up to the dst type. */
@@ -1071,8 +1089,12 @@ static IRAtom* mkPCastTo( MCEnv* mce, IRType dst_ty, IRAtom* vbits )
                                                     tmp1, tmp1));
          return tmp1;
       default: 
+#ifdef AVX_512
+         return Widen1to512(mce, dst_ty, tmp1);
+#else
          ppIRType(dst_ty);
          VG_(tool_panic)("mkPCastTo(2)");
+#endif
    }
 }
 
@@ -3459,8 +3481,14 @@ IRAtom* expr2vbits_Qop ( MCEnv* mce,
       case Iop_Rotx64:
          return mkLazy4(mce, Ity_I64, vatom1, vatom2, vatom3, vatom4);
       default:
+#ifdef AVX_512
+         return expr2vbits_Qop_AVX512(mce, op,
+               atom1, atom2, atom3, atom4,
+               vatom1, vatom2, vatom3, vatom4);
+#else
          ppIROp(op);
          VG_(tool_panic)("memcheck:expr2vbits_Qop");
+#endif
    }
 }
 
@@ -3614,8 +3642,13 @@ IRAtom* expr2vbits_Triop ( MCEnv* mce,
                                 unary64Fx2_w_rm(mce, vatom1, vatom3)));
 
       default:
+#ifdef AVX_512
+         return expr2vbits_Triop_AVX512(mce, op,
+               atom1, atom2, atom3, vatom1, vatom2, vatom3);
+#else
          ppIROp(op);
          VG_(tool_panic)("memcheck:expr2vbits_Triop");
+#endif
    }
 }
 
@@ -5137,8 +5170,12 @@ IRAtom* expr2vbits_Binop ( MCEnv* mce,
       }
 
       default:
+#ifdef AVX_512
+         return expr2vbits_Binop_AVX512( mce, op, atom1, atom2, vatom1, vatom2 );
+#else
          ppIROp(op);
          VG_(tool_panic)("memcheck:expr2vbits_Binop");
+#endif
    }
 }
 
@@ -5584,8 +5621,12 @@ IRExpr* expr2vbits_Unop ( MCEnv* mce, IROp op, IRAtom* atom )
 
       case Iop_I64UtoF32:
       default:
+#ifdef AVX_512
+         return expr2vbits_Unop_AVX512(mce, op, vatom);
+#else
          ppIROp(op);
          VG_(tool_panic)("memcheck:expr2vbits_Unop");
+#endif
    }
 }
 
@@ -5629,6 +5670,12 @@ IRAtom* expr2vbits_Load_WRK ( MCEnv* mce,
 
    if (end == Iend_LE) {
       switch (ty) {
+#ifdef AVX_512
+         case Ity_V512: helper = &MC_(helperc_LOADV512);
+                        hname = "MC_(helperc_LOADV512)";
+                        ret_via_outparam = True;
+                        break;
+#endif
          case Ity_V256: helper = &MC_(helperc_LOADV256le);
                         hname = "MC_(helperc_LOADV256le)";
                         ret_via_outparam = True;
@@ -5764,6 +5811,9 @@ IRAtom* expr2vbits_Load ( MCEnv* mce,
       case Ity_I128:
       case Ity_V128:
       case Ity_V256:
+#ifdef AVX_512
+      case Ity_V512:
+#endif
          return expr2vbits_Load_WRK(mce, end, ty, addr, bias, guard);
       default:
          VG_(tool_panic)("expr2vbits_Load");
@@ -6049,6 +6099,13 @@ void do_shadow_Store ( MCEnv* mce,
    }
 
    ty = typeOfIRExpr(mce->sb->tyenv, vdata);
+
+#ifdef AVX_512
+   if (UNLIKELY(ty == Ity_V512)) {
+      do_shadow_Store_512(mce, end, addr, bias, data, vdata, guard);
+      return;
+   }
+#endif
 
    // If we're not doing undefined value checking, pretend that this value
    // is "all valid".  That lets Vex's optimiser remove some of the V bit
@@ -7106,6 +7163,10 @@ static void do_shadow_LoadG ( MCEnv* mce, IRLoadG* lg )
       case ILGop_IdentV128: loadedTy = Ity_V128; vwiden = Iop_INVALID; break;
       case ILGop_Ident64:   loadedTy = Ity_I64;  vwiden = Iop_INVALID; break;
       case ILGop_Ident32:   loadedTy = Ity_I32;  vwiden = Iop_INVALID; break;
+#ifdef AVX_512
+      case ILGop_Ident16:   loadedTy = Ity_I16;  vwiden = Iop_INVALID; break;
+      case ILGop_Ident8:    loadedTy = Ity_I8;   vwiden = Iop_INVALID; break;
+#endif
       case ILGop_16Uto32:   loadedTy = Ity_I16;  vwiden = Iop_16Uto32; break;
       case ILGop_16Sto32:   loadedTy = Ity_I16;  vwiden = Iop_16Sto32; break;
       case ILGop_8Uto32:    loadedTy = Ity_I8;   vwiden = Iop_8Uto32;  break;
@@ -7200,6 +7261,11 @@ static IRAtom* gen_guarded_load_b ( MCEnv* mce, Int szB,
       case 32: hFun  = (void*)&MC_(helperc_b_load32);
                hName = "MC_(helperc_b_load32)";
                break;
+#ifdef AVX_512
+      case 64: hFun  = (void*)&MC_(helperc_b_load64);
+               hName = "MC_(helperc_b_load64)";
+               break;
+#endif
       default:
          VG_(printf)("mc_translate.c: gen_load_b: unhandled szB == %d\n", szB);
          tl_assert(0);
@@ -7738,6 +7804,10 @@ static void do_origins_LoadG ( MCEnv* mce, IRLoadG* lg )
       case ILGop_IdentV128: loadedTy = Ity_V128; break;
       case ILGop_Ident64:   loadedTy = Ity_I64;  break;
       case ILGop_Ident32:   loadedTy = Ity_I32;  break;
+#ifdef AVX_512
+      case ILGop_Ident16:   loadedTy = Ity_I16;  break;
+      case ILGop_Ident8:    loadedTy = Ity_I8;   break;
+#endif
       case ILGop_16Uto32:   loadedTy = Ity_I16;  break;
       case ILGop_16Sto32:   loadedTy = Ity_I16;  break;
       case ILGop_8Uto32:    loadedTy = Ity_I8;   break;
@@ -8215,6 +8285,9 @@ static Bool isBogusAtom ( IRAtom* at )
       case Ico_F64i: return False;
       case Ico_V128: return False;
       case Ico_V256: return False;
+#ifdef AVX_512
+      case Ico_V512: return False;
+#endif
       default: ppIRExpr(at); tl_assert(0);
    }
    /* VG_(printf)("%llx\n", n); */
@@ -9046,6 +9119,13 @@ IRSB* MC_(instrument) ( VgCallbackClosure* closure,
    return sb_out;
 }
 
+
+/* Adding AVX-512 finctionality as C file so it would have access to static 
+ * functions defined here */
+
+#ifdef AVX_512
+#include "mc_translate_AVX512.c"
+#endif
 
 /*--------------------------------------------------------------------*/
 /*--- end                                           mc_translate.c ---*/

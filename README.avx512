@@ -1,0 +1,49 @@
+Supported platforms
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Knight's Landing (KNL)
+- Sky Lake (SKX)
+
+Status
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+At 27.08.2021, AVX-512 functionality is implemented in Valgrind core, Memcheck 
+and Helgrind.
+Expected functionality:
+- No regressions on AVX-2 machines
+- On Knight's Landing and SkyLake machines, applications return the same results 
+standalone and under Nulgrind, Memcheck and Helgrind
+- On Knight's Landing and SkyLake machines, Memchcek and Helgrind analysis of
+the same code, compiled with AVX-512 and AVX-2 returns the same errors in user 
+code
+
+Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- AVX-2 and AVX-512 Memcheck and Helgrind analysis might report different errors 
+on library code
+- Other instruction-level analysis tools are not adapted to AVX-512
+
+Building
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- On AVX-512 machine, Valgrind automatically builds AVX-512 version
+- It is possible to build AVX-512 Valgrind on AVX2 machine, but it would 
+be unable to analyze AVX-512 binaries on this AVX2 machine.
+To do so, configure Valgrind with "./configure -DAVX_512" flag.
+
+
+Implementation summary
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+AVX-512 introduces lots of new assembly instrucions and features such as 
+instruction masking, new displacement encoding, embedded broadcast and so on.
+It also updates AVX2 and AVX instrustions to work on larger vector registers.
+
+To simplify instruction parsing and translation to IR, we introduced a file 
+describing all instructions (./filegen/master.csv) and a script that generates
+Valgrind source files from the file.
+Please refer to ./filegen/README for more details
+
+While the code tries to reuse existent IRs whenever possible, it introduces 
+new AVX-512 IRs as well. Some of these IRs are emulated through intrinsics. 
+That means, AVX-512 Valgind is unable to emulate and analyze AVX-512 code on a 
+machine that does not support AVX-512.
+Another consequence is, instruction-level analysis tools need explicit AVX-512
+enabling.
+

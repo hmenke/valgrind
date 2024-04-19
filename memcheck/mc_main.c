@@ -4642,7 +4642,11 @@ static UInt mb_get_origin_for_guest_offset ( ThreadId tid,
 static void mc_post_reg_write ( CorePart part, ThreadId tid,
                                 PtrdiffT offset, SizeT size)
 {
+#ifdef AVX_512
+#  define MAX_REG_WRITE_SIZE 3072
+#else
 #  define MAX_REG_WRITE_SIZE 2264
+#endif
    UChar area[MAX_REG_WRITE_SIZE];
    tl_assert(size <= MAX_REG_WRITE_SIZE);
    VG_(memset)(area, V_BITS8_DEFINED, size);
@@ -7618,8 +7622,10 @@ static const HChar* MC_(event_ctr_name)[MCPE_LAST] = {
                                      = "MAKE_STACK_UNINIT_128_no_o_slowcase",
 };
 
+
 static void init_prof_mem ( void )
 {
+   init_prof_mem_evex();
    Int i, name_count = 0;
 
    for (i = 0; i < MCPE_LAST; i++) {
@@ -8716,6 +8722,10 @@ static void mc_pre_clo_init(void)
 STATIC_ASSERT(sizeof(UWord) == sizeof(SizeT));
 
 VG_DETERMINE_INTERFACE_VERSION(mc_pre_clo_init)
+
+#ifdef AVX_512
+#include "mc_main_AVX512.c"
+#endif
 
 /*--------------------------------------------------------------------*/
 /*--- end                                                mc_main.c ---*/

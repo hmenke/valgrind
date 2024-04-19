@@ -747,7 +747,12 @@ IRSB* vg_SP_update_pass ( void*             closureV,
    wherever we like. */
 /* 60000: should agree with assertion in VG_(add_to_transtab) in
    m_transtab.c. */
+#ifdef AVX_512
+#define N_TMPBUF 240000
+#else
 #define N_TMPBUF 60000
+#endif
+
 static UChar tmpbuf[N_TMPBUF];
 
 
@@ -1848,7 +1853,11 @@ Bool VG_(translate) ( ThreadId tid,
    }
 
    /* Copy data at trans_addr into the translation cache. */
+#ifdef AVX_512
+   vg_assert(tmpbuf_used > 0 && tmpbuf_used < N_TMPBUF);
+#else
    vg_assert(tmpbuf_used > 0 && tmpbuf_used < 65536);
+#endif
 
    // If debugging, don't do anything with the translated block;  we
    // only did this for the debugging output produced along the way.

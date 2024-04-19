@@ -28,6 +28,7 @@ pkginclude_HEADERS = \
 	pub/libvex_guest_mips64.h \
 	pub/libvex_s390x_common.h \
 	pub/libvex_ir.h \
+	pub/libvex_ir_AVX512.h \
 	pub/libvex_trc_values.h \
 	pub/libvex_inner.h
 # libvex_inner.h is special: it is a public header for valgrind core,
@@ -36,6 +37,8 @@ pkginclude_HEADERS = \
 noinst_HEADERS = \
 	priv/main_globals.h \
 	priv/main_util.h \
+	priv/main_main_AVX512.h \
+	priv/ir_defs_AVX512.h \
 	priv/ir_match.h \
 	priv/ir_opt.h \
 	priv/guest_generic_bb_to_IR.h \
@@ -53,6 +56,7 @@ noinst_HEADERS = \
 	priv/host_generic_simd64.h \
 	priv/host_generic_simd128.h \
 	priv/host_generic_simd256.h \
+	priv/host_generic_AVX512.h \
 	priv/host_generic_maddf.h \
 	priv/host_amd64_maddf.h \
 	priv/host_x86_defs.h \
@@ -120,9 +124,21 @@ pub/libvex_guest_offsets.h: auxprogs/genoffsets.c \
 
 pkglib_LIBRARIES  = libvex-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
 	libvexmultiarch-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a
+if BUILD_AVX512_TESTS
+pkglib_LIBRARIES += libvex512f-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+	libvex512knl-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+	libvex512skx-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+	libvex512icl-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a
+endif
 if VGCONF_HAVE_PLATFORM_SEC
 pkglib_LIBRARIES += libvex-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a \
 	libvexmultiarch-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a
+if BUILD_AVX512_TESTS
+pkglib_LIBRARIES += libvex512f-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a \
+	libvex512knl-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a \
+	libvex512skx-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a \
+	libvex512icl-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a
+endif
 endif
 
 LIBVEX_SOURCES_COMMON = \
@@ -215,3 +231,65 @@ libvexmultiarch_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_CFLAGS   = \
         $(AM_CFLAGS_@VGCONF_PLATFORM_SEC_CAPS@) $(LIBVEX_CFLAGS)
 endif
 
+LIBVEX512F_SOURCES = priv/host_generic_AVX512_F.c \
+                     priv/main_main_AVX512.c \
+                     priv/ir_defs_AVX512.c \
+                     priv/guest_amd64_helpers_AVX512.c
+LIBVEX512F_CFLAGS = -mavx512f -mavx512cd -mf16c -DAVX_512
+libvex512f_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_SOURCES  = $(LIBVEX512F_SOURCES)
+libvex512f_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_CPPFLAGS = \
+        $(AM_CPPFLAGS_@VGCONF_PLATFORM_PRI_CAPS@) -Ipriv
+libvex512f_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_CFLAGS   = \
+        $(AM_CFLAGS_@VGCONF_PLATFORM_PRI_CAPS@) $(LIBVEX_CFLAGS) $(LIBVEX512F_CFLAGS)
+if VGCONF_HAVE_PLATFORM_SEC
+libvex512f_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_SOURCES  = $(LIBVEX512F_SOURCES)
+libvex512f_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_CPPFLAGS = \
+        $(AM_CPPFLAGS_@VGCONF_PLATFORM_SEC_CAPS@) -Ipriv
+libvex512f_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_CFLAGS   = \
+        $(AM_CFLAGS_@VGCONF_PLATFORM_SEC_CAPS@) $(LIBVEX_CFLAGS) $(LIBVEX512F_CFLAGS)
+endif
+
+LIBVEX512KNL_SOURCES = priv/host_generic_AVX512_KNL.c
+LIBVEX512KNL_CFLAGS = -mavx512f -mavx512er -DAVX_512
+libvex512knl_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_SOURCES  = $(LIBVEX512KNL_SOURCES)
+libvex512knl_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_CPPFLAGS = \
+        $(AM_CPPFLAGS_@VGCONF_PLATFORM_PRI_CAPS@) -Ipriv
+libvex512knl_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_CFLAGS   = \
+        $(AM_CFLAGS_@VGCONF_PLATFORM_PRI_CAPS@) $(LIBVEX_CFLAGS) $(LIBVEX512KNL_CFLAGS)
+if VGCONF_HAVE_PLATFORM_SEC
+libvex512knl_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_SOURCES  = $(LIBVEX512KNL_SOURCES)
+libvex512knl_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_CPPFLAGS = \
+        $(AM_CPPFLAGS_@VGCONF_PLATFORM_SEC_CAPS@) -Ipriv
+libvex512knl_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_CFLAGS   = \
+        $(AM_CFLAGS_@VGCONF_PLATFORM_SEC_CAPS@) $(LIBVEX_CFLAGS) $(LIBVEX512KNL_CFLAGS)
+endif
+
+LIBVEX512SKX_SOURCES = priv/host_generic_AVX512_SKX.c
+LIBVEX512SKX_CFLAGS = -mavx512f -mavx512cd -mavx512vl -mavx512bw -mavx512dq -DAVX_512
+libvex512skx_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_SOURCES  = $(LIBVEX512SKX_SOURCES)
+libvex512skx_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_CPPFLAGS = \
+        $(AM_CPPFLAGS_@VGCONF_PLATFORM_PRI_CAPS@) -Ipriv
+libvex512skx_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_CFLAGS   = \
+        $(AM_CFLAGS_@VGCONF_PLATFORM_PRI_CAPS@) $(LIBVEX_CFLAGS) $(LIBVEX512SKX_CFLAGS)
+if VGCONF_HAVE_PLATFORM_SEC
+libvex512skx_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_SOURCES  = $(LIBVEX512SKX_SOURCES)
+libvex512skx_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_CPPFLAGS = \
+        $(AM_CPPFLAGS_@VGCONF_PLATFORM_SEC_CAPS@) -Ipriv
+libvex512skx_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_CFLAGS   = \
+        $(AM_CFLAGS_@VGCONF_PLATFORM_SEC_CAPS@) $(LIBVEX_CFLAGS) $(LIBVEX512SKX_CFLAGS)
+endif
+
+LIBVEX512ICL_SOURCES = priv/host_generic_AVX512_ICL.c
+LIBVEX512ICL_CFLAGS = -mavx512f -mavx512vl -mavx512vbmi -DAVX_512
+libvex512icl_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_SOURCES  = $(LIBVEX512ICL_SOURCES)
+libvex512icl_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_CPPFLAGS = \
+        $(AM_CPPFLAGS_@VGCONF_PLATFORM_PRI_CAPS@) -Ipriv
+libvex512icl_@VGCONF_ARCH_PRI@_@VGCONF_OS@_a_CFLAGS   = \
+        $(AM_CFLAGS_@VGCONF_PLATFORM_PRI_CAPS@) $(LIBVEX_CFLAGS) $(LIBVEX512ICL_CFLAGS)
+if VGCONF_HAVE_PLATFORM_SEC
+libvex512icl_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_SOURCES  = $(LIBVEX512ICL_SOURCES)
+libvex512icl_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_CPPFLAGS = \
+        $(AM_CPPFLAGS_@VGCONF_PLATFORM_SEC_CAPS@) -Ipriv
+libvex512icl_@VGCONF_ARCH_SEC@_@VGCONF_OS@_a_CFLAGS   = \
+        $(AM_CFLAGS_@VGCONF_PLATFORM_SEC_CAPS@) $(LIBVEX_CFLAGS) $(LIBVEX512ICL_CFLAGS)
+endif

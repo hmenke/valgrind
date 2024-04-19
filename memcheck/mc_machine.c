@@ -102,6 +102,9 @@ Int MC_(get_otrack_shadow_offset) ( Int offset, Int szB )
    return cand;
 }
 
+#ifdef AVX_512
+#include "mc_machine_AVX512.c"
+#endif
 
 static Int get_otrack_shadow_offset_wrk ( Int offset, Int szB )
 {
@@ -677,6 +680,7 @@ static Int get_otrack_shadow_offset_wrk ( Int offset, Int szB )
    if (o == GOF(FC3210)   && szB == 8) return -1;
 
    /* XMM registers */
+#ifndef AVX_512
    if (o >= GOF(YMM0)  && o+sz <= GOF(YMM0) +SZB(YMM0))  return GOF(YMM0);
    if (o >= GOF(YMM1)  && o+sz <= GOF(YMM1) +SZB(YMM1))  return GOF(YMM1);
    if (o >= GOF(YMM2)  && o+sz <= GOF(YMM2) +SZB(YMM2))  return GOF(YMM2);
@@ -694,6 +698,16 @@ static Int get_otrack_shadow_offset_wrk ( Int offset, Int szB )
    if (o >= GOF(YMM14) && o+sz <= GOF(YMM14)+SZB(YMM14)) return GOF(YMM14);
    if (o >= GOF(YMM15) && o+sz <= GOF(YMM15)+SZB(YMM15)) return GOF(YMM15);
    if (o >= GOF(YMM16) && o+sz <= GOF(YMM16)+SZB(YMM16)) return GOF(YMM16);
+#else
+   /* ZMM registers */
+   Int zmm_offset = start_zmm_vector_register(o, sz);
+   if (zmm_offset != 0)
+      return zmm_offset;
+   /* opmask (k) registers */
+   Int k_offset = start_mask_register(o, sz);
+   if (k_offset != 0)
+      return k_offset;
+#endif
 
    /* MMX accesses to FP regs.  Need to allow for 32-bit references
       due to dirty helpers for frstor etc, which reference the entire

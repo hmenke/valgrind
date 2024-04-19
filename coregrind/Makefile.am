@@ -280,6 +280,7 @@ noinst_HEADERS = \
 	m_gdbserver/target.h \
 	m_gdbserver/valgrind_low.h \
 	m_gdbserver/gdb/signals.h \
+	m_gdbserver/valgrind-low-amd64_AVX512.h \
 	m_scheduler/priv_sema.h \
 	m_scheduler/priv_sched-lock.h \
 	m_scheduler/priv_sched-lock-impl.h \
@@ -409,6 +410,7 @@ COREGRIND_SOURCES_COMMON = \
 	m_gdbserver/utils.c \
 	m_gdbserver/valgrind-low-x86.c \
 	m_gdbserver/valgrind-low-amd64.c \
+	m_gdbserver/valgrind-low-amd64_AVX512.c \
 	m_gdbserver/valgrind-low-arm.c \
 	m_gdbserver/valgrind-low-arm64.c \
 	m_gdbserver/valgrind-low-ppc32.c \
@@ -430,6 +432,7 @@ COREGRIND_SOURCES_COMMON = \
 	m_scheduler/sched-lock.c \
 	m_scheduler/sched-lock-generic.c \
 	m_scheduler/scheduler.c \
+	m_scheduler/scheduler_AVX512.c \
 	m_scheduler/sema.c \
 	m_sigframe/sigframe-common.c \
 	m_sigframe/sigframe-x86-linux.c \
@@ -686,6 +689,9 @@ GDBSERVER_XML_FILES = \
 	m_gdbserver/64bit-avx-valgrind-s2.xml \
 	m_gdbserver/64bit-avx-valgrind-s1.xml \
 	m_gdbserver/64bit-avx.xml \
+	m_gdbserver/64bit-avx512-valgrind-s2.xml \
+	m_gdbserver/64bit-avx512-valgrind-s1.xml \
+	m_gdbserver/64bit-avx512.xml \
 	m_gdbserver/64bit-core-valgrind-s1.xml \
 	m_gdbserver/64bit-core-valgrind-s2.xml \
 	m_gdbserver/64bit-core.xml \

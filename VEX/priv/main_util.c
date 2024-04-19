@@ -56,7 +56,11 @@
 #define N_TEMPORARY_BYTES (5*5000000)
 static Bool mempools_created = False;
 #else
+#ifdef AVX_512
+#define N_TEMPORARY_BYTES (20*5000000)
+#else
 #define N_TEMPORARY_BYTES 5000000
+#endif
 #endif
 
 static HChar  temporary[N_TEMPORARY_BYTES] __attribute__((aligned(REQ_ALIGN)));

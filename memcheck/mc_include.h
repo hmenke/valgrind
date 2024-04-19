@@ -334,7 +334,11 @@ enum {
    MCPE_MAKE_STACK_UNINIT_128_NO_O_ALIGNED_8,
    MCPE_MAKE_STACK_UNINIT_128_NO_O_SLOWCASE,
    /* Do not add enumerators past this line. */
-   MCPE_LAST
+#ifdef AVX_512
+   MCPE_LAST_NOT_EVEX,
+#else
+   MCPE_LAST,
+#endif
 };
 
 extern ULong MC_(event_ctr)[MCPE_LAST];
@@ -351,6 +355,9 @@ extern ULong MC_(event_ctr)[MCPE_LAST];
 #endif   /* MC_PROFILE_MEMORY */
 
 
+#ifdef AVX_512
+#include "mc_include_AVX512.h"
+#endif
 /*------------------------------------------------------------*/
 /*--- V and A bits (Victoria & Albert ?)                   ---*/
 /*------------------------------------------------------------*/

@@ -40,6 +40,7 @@
 
 /* below loosely inspired from file generated with gdb regdat.sh */
 
+#ifndef AVX_512
 static struct reg regs[] = {
   { "rax", 0, 64 },
   { "rbx", 64, 64 },
@@ -118,6 +119,10 @@ static struct reg regs[] = {
   { "ymm14h", 6144, 128 },
   { "ymm15h", 6272, 128 }
 };
+#else
+#include "valgrind-low-amd64_AVX512.h"
+#endif
+
 static const char *expedite_regs[] = { "rbp", "rsp", "rip", 0 };
 #define max_num_regs (sizeof (regs) / sizeof (regs[0]))
 static int dyn_num_regs; // if no AVX, we have to give less registers to gdb.
@@ -297,7 +302,11 @@ void transfer_register (ThreadId tid, int abs_regno, void * buf,
    case 71: VG_(transfer) (&amd64->guest_YMM13[4], buf, dir, size, mod); break;
    case 72: VG_(transfer) (&amd64->guest_YMM14[4], buf, dir, size, mod); break;
    case 73: VG_(transfer) (&amd64->guest_YMM15[4], buf, dir, size, mod); break;
+#ifdef AVX_512
+   default: transfer_register_AVX512 (amd64, regno, buf, dir, size, mod);
+#else
    default: vg_assert(0);
+#endif
    }
 }
 
@@ -358,13 +367,21 @@ static struct valgrind_target_ops low_target = {
    target_get_dtv
 };
 
+#ifdef AVX_512
+Bool have_avx512(void);
+#endif
+
 void amd64_init_architecture (struct valgrind_target_ops *target)
 {
    *target = low_target;
-   if (have_avx())
-      dyn_num_regs = max_num_regs;
-   else
+   if (!have_avx())
       dyn_num_regs = max_num_regs - 16; // remove the AVX "high" registers.
+#ifdef AVX_512
+   else if (!have_avx512())
+      dyn_num_regs = max_num_regs - 72; // remove the AVX-512 registers.
+#endif
+   else
+      dyn_num_regs = max_num_regs;
    target->num_regs = dyn_num_regs;
    set_register_cache (regs, dyn_num_regs);
    gdbserver_expedite_regs = expedite_regs;

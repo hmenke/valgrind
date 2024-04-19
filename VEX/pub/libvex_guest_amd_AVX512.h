@@ -1,8 +1,6 @@
-
 /*---------------------------------------------------------------*/
-/*--- begin                              libvex_guest_amd64.h ---*/
+/*--- begin                         libvex_guest_amd_AVX512.h ---*/
 /*---------------------------------------------------------------*/
-
 /*
    This file is part of Valgrind, a dynamic binary instrumentation
    framework.
@@ -30,18 +28,17 @@
    used to endorse or promote products derived from this software
    without prior written permission.
 */
+#ifdef AVX_512
 
-#ifndef __LIBVEX_PUB_GUEST_AMD64_H
-#define __LIBVEX_PUB_GUEST_AMD64_H
-
-#ifndef AVX_512
+#ifndef __LIBVEX_PUB_GUEST_AMD512_H
+#define __LIBVEX_PUB_GUEST_AMD512_H
 
 #include "libvex_basictypes.h"
 #include "libvex_emnote.h"
 
 
 /*---------------------------------------------------------------*/
-/*--- Vex's representation of the AMD64 CPU state.            ---*/
+/*--- EVEX's representation of the AMD64 CPU state.            ---*/
 /*---------------------------------------------------------------*/
 
 /* See detailed comments at the top of libvex_guest_x86.h for
@@ -85,7 +82,7 @@ typedef
       /* ... */ ULong  guest_ACFLAG;
       /* Bit 21 (ID) of eflags stored here, as either 0 or 1. */
       /* 192 */ ULong guest_IDFLAG;
-      /* Probably a lot more stuff too. 
+      /* Probably a lot more stuff too.
          D,ID flags
          16  128-bit SSE registers
          all the old x87 FPU gunk
@@ -97,28 +94,46 @@ typedef
          the 64-bit offset associated with this constant %fs value. */
       /* 200 */ ULong guest_FS_CONST;
 
-      /* YMM registers.  Note that these must be allocated
+      /* ZMM registers.  Note that these must be allocated
          consecutively in order that the SSE4.2 PCMP{E,I}STR{I,M}
-         helpers can treat them as an array.  YMM16 is a fake reg used
-         as an intermediary in handling aforementioned insns. */
+         helpers can treat them as an array.
+         ZMM32 is a fake reg used as an intermediary */
       /* 208 */ULong guest_SSEROUND;
-      /* 216 */U256  guest_YMM0;
-      U256  guest_YMM1;
-      U256  guest_YMM2;
-      U256  guest_YMM3;
-      U256  guest_YMM4;
-      U256  guest_YMM5;
-      U256  guest_YMM6;
-      U256  guest_YMM7;
-      U256  guest_YMM8;
-      U256  guest_YMM9;
-      U256  guest_YMM10;
-      U256  guest_YMM11;
-      U256  guest_YMM12;
-      U256  guest_YMM13;
-      U256  guest_YMM14;
-      U256  guest_YMM15;
-      U256  guest_YMM16;
+      /* 216 */
+      U512 guest_ZMM0;
+      U512 guest_ZMM1;
+      U512 guest_ZMM2;
+      U512 guest_ZMM3;
+      U512 guest_ZMM4;
+      U512 guest_ZMM5;
+      U512 guest_ZMM6;
+      U512 guest_ZMM7;
+      U512 guest_ZMM8;
+      U512 guest_ZMM9;
+      U512 guest_ZMM10;
+      U512 guest_ZMM11;
+      U512 guest_ZMM12;
+      U512 guest_ZMM13;
+      U512 guest_ZMM14;
+      U512 guest_ZMM15;
+      U512 guest_ZMM16;
+      U512 guest_ZMM17;
+      U512 guest_ZMM18;
+      U512 guest_ZMM19;
+      U512 guest_ZMM20;
+      U512 guest_ZMM21;
+      U512 guest_ZMM22;
+      U512 guest_ZMM23;
+      U512 guest_ZMM24;
+      U512 guest_ZMM25;
+      U512 guest_ZMM26;
+      U512 guest_ZMM27;
+      U512 guest_ZMM28;
+      U512 guest_ZMM29;
+      U512 guest_ZMM30;
+      U512 guest_ZMM31;
+      U512 guest_ZMM32; //NULL
+      ULong guest_MASKREG[8];
 
       /* FPU */
       /* Note.  Setting guest_FTOP to be ULong messes up the
@@ -133,10 +148,7 @@ typedef
 
       /* Emulation notes */
       UInt  guest_EMNOTE;
-      /* Used by Darwin and FreeBSD when setting the carry flag from
-       * ML_(do_syscall_for_client_WRK). Needed to determine how
-       * to restart interrupted syscalls. */
-      UInt guest_SETC;
+      UInt  pad2;
 
       /* Translation-invalidation area description.  Not used on amd64
          (there is no invalidate-icache insn), but needed so as to
@@ -177,7 +189,23 @@ typedef
    }
    VexGuestAMD64State;
 
-
+#define guest_YMM0 guest_ZMM0
+#define guest_YMM1 guest_ZMM1
+#define guest_YMM2 guest_ZMM2
+#define guest_YMM3 guest_ZMM3
+#define guest_YMM4 guest_ZMM4
+#define guest_YMM5 guest_ZMM5
+#define guest_YMM6 guest_ZMM6
+#define guest_YMM7 guest_ZMM7
+#define guest_YMM8 guest_ZMM8
+#define guest_YMM9 guest_ZMM9
+#define guest_YMM10 guest_ZMM10
+#define guest_YMM11 guest_ZMM11
+#define guest_YMM12 guest_ZMM12
+#define guest_YMM13 guest_ZMM13
+#define guest_YMM14 guest_ZMM14
+#define guest_YMM15 guest_ZMM15
+#define guest_YMM16 guest_ZMM16
 
 /*---------------------------------------------------------------*/
 /*--- Utility functions for amd64 guest stuff.                ---*/
@@ -185,48 +213,12 @@ typedef
 
 /* ALL THE FOLLOWING ARE VISIBLE TO LIBRARY CLIENT */
 
-/* Initialise all guest amd64 state.  The FPU is put in default
-   mode. */
-extern
-void LibVEX_GuestAMD64_initialise ( /*OUT*/VexGuestAMD64State* vex_state );
+/* Initialise all guest amd64 state.  The FPU is put in default  mode. */
+extern void LibVEX_GuestAMD64_initialise_ZMM ( /*OUT*/VexGuestAMD64State* vex_state );
 
-
-/* Extract from the supplied VexGuestAMD64State structure the
-   corresponding native %rflags value. */
-extern 
-ULong LibVEX_GuestAMD64_get_rflags ( /*IN*/const VexGuestAMD64State* vex_state );
-
-/* Put rflags into the given state. */
-extern
-void LibVEX_GuestAMD64_put_rflags ( ULong rflags,
-                                    /*MOD*/VexGuestAMD64State* vex_state );
-
-/* Set the carry flag in the given state to 'new_carry_flag', which
-   should be zero or one. */
-extern
-void
-LibVEX_GuestAMD64_put_rflag_c ( ULong new_carry_flag,
-                                /*MOD*/VexGuestAMD64State* vex_state );
-
-/* Do FXSAVE from the supplied VexGuestAMD64tate structure and store the
-   result at the given address which represents a buffer of at least 416
-   bytes. */
-extern
-void LibVEX_GuestAMD64_fxsave ( /*IN*/VexGuestAMD64State* gst,
-                                /*OUT*/HWord fp_state );
-
-/* Do FXRSTOR from the supplied address and store read values to the given
-   VexGuestAMD64State structure. */
-extern
-VexEmNote LibVEX_GuestAMD64_fxrstor ( /*IN*/HWord fp_state,
-                                      /*MOD*/VexGuestAMD64State* gst );
-
-#else /* #ifdef AVX_512 */
-#include "libvex_guest_amd_AVX512.h"
-#endif
-
-#endif /* ndef __LIBVEX_PUB_GUEST_AMD64_H */
-
+#endif /* ndef __LIBVEX_PUB_GUEST_AMD512_H */
+#endif /* ndef AVX_512 */
 /*---------------------------------------------------------------*/
-/*---                                    libvex_guest_amd64.h ---*/
+/*---                               libvex_guest_amd_AVX512.h ---*/
 /*---------------------------------------------------------------*/
+

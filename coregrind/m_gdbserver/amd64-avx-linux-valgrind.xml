@@ -15,12 +15,15 @@
   <xi:include href="64bit-sse.xml"/>
   <xi:include href="64bit-linux.xml"/>
   <xi:include href="64bit-avx.xml"/>
+  <xi:include href="64bit-avx512.xml"/>
   <xi:include href="64bit-core-valgrind-s1.xml"/>
   <xi:include href="64bit-sse-valgrind-s1.xml"/>
   <xi:include href="64bit-linux-valgrind-s1.xml"/>
   <xi:include href="64bit-avx-valgrind-s1.xml"/>
+  <xi:include href="64bit-avx512-valgrind-s1.xml"/>
   <xi:include href="64bit-core-valgrind-s2.xml"/>
   <xi:include href="64bit-sse-valgrind-s2.xml"/>
   <xi:include href="64bit-linux-valgrind-s2.xml"/>
   <xi:include href="64bit-avx-valgrind-s2.xml"/>
+  <xi:include href="64bit-avx512-valgrind-s2.xml"/>
 </target>

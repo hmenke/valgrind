@@ -3469,6 +3469,56 @@ AC_MSG_RESULT([no])
 
 AM_CONDITIONAL(BUILD_AVX2_TESTS, test x$ac_have_as_avx2 = xyes)
 
+# does the x86/amd64 assembler understand AVX512 instructions?
+# Note, this DOES generate a C-level symbol AVX_512
+# and automake-level symbols (BUILD_AVX512_TESTS, BUILD_AVX512_TESTS_ER
+# and BUILD_AVX512_TESTS_VL), used in test Makefile.am's
+AC_MSG_CHECKING([if x86/amd64 assembler speaks AVX512F])
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[]], [[
+  do { long long int x;
+   __asm__ __volatile__(
+      "vaddpd %%zmm6,%%zmm7,%%zmm8" : : : "xmm6","xmm7","xmm8"); }
+  while (0)
+]])], [
+ac_have_as_avx512=yes
+AC_MSG_RESULT([yes])
+CFLAGS="$CFLAGS -DAVX_512"
+], [
+ac_have_as_avx512=no
+AC_MSG_RESULT([no])
+])
+AM_CONDITIONAL(BUILD_AVX512_TESTS, test x$ac_have_as_avx512 = xyes)
+
+AC_MSG_CHECKING([if x86/amd64 assembler speaks AVX512ER])
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[]], [[
+  do { long long int x;
+   __asm__ __volatile__(
+      "vrcp28ps %%zmm6,%%zmm7" : : : "xmm6","xmm7"); }
+  while (0)
+]])], [
+ac_have_as_avx512er=yes
+AC_MSG_RESULT([yes])
+], [
+ac_have_as_avx512er=no
+AC_MSG_RESULT([no])
+])
+AM_CONDITIONAL(BUILD_AVX512_TESTS_ER, test x$ac_have_as_avx512er = xyes)
+
+AC_MSG_CHECKING([if x86/amd64 assembler speaks AVX512VL])
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[]], [[
+  do { long long int x;
+   __asm__ __volatile__(
+      "vscalefps %%xmm6,%%xmm7,%%xmm8" : : : "xmm6","xmm7","xmm8"); }
+  while (0)
+]])], [
+ac_have_as_avx512vl=yes
+AC_MSG_RESULT([yes])
+], [
+ac_have_as_avx512vl=no
+AC_MSG_RESULT([no])
+])
+AM_CONDITIONAL(BUILD_AVX512_TESTS_VL, test x$ac_have_as_avx512vl = xyes)
+
 
 # does the x86/amd64 assembler understand TSX instructions and
 # the XACQUIRE/XRELEASE prefixes?

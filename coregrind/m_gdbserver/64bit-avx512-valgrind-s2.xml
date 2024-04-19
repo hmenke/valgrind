@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2010-2012 Free Software Foundation, Inc.
+
+     Copying and distribution of this file, with or without modification,
+     are permitted in any medium without royalty provided the copyright
+     notice and this notice are preserved.  -->
+
+<!DOCTYPE feature SYSTEM "gdb-target.dtd">
+<feature name="org.gnu.gdb.i386.avx512.valgrind.s2">
+  <vector id="v4f_s" type="uint32" count="4"/>
+  <vector id="v2d_s" type="uint64" count="2"/>
+  <vector id="v16i8" type="int8" count="16"/>
+  <vector id="v8i16" type="int16" count="8"/>
+  <vector id="v4i32" type="int32" count="4"/>
+  <vector id="v2i64" type="int64" count="2"/>
+  <union id="vec128_s">
+    <field name="v4_float" type="v4f_s"/>
+    <field name="v2_double" type="v2d_s"/>
+    <field name="v16_int8" type="v16i8"/>
+    <field name="v8_int16" type="v8i16"/>
+    <field name="v4_int32" type="v4i32"/>
+    <field name="v2_int64" type="v2i64"/>
+    <field name="uint128" type="uint128"/>
+  </union>
+  <reg name="xmm16s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm17s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm18s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm19s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm20s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm21s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm22s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm23s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm24s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm25s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm26s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm27s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm28s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm29s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm30s2" bitsize="128" type="vec128_s"/>
+  <reg name="xmm31s2" bitsize="128" type="vec128_s"/>
+
+  <reg name="ymm16hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm17hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm18hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm19hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm20hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm21hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm22hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm23hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm24hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm25hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm26hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm27hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm28hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm29hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm30hs2" bitsize="128" type="uint128"/>
+  <reg name="ymm31hs2" bitsize="128" type="uint128"/>
+
+  <reg name="k0s2" bitsize="64" type="int"/>
+  <reg name="k1s2" bitsize="64" type="int"/>
+  <reg name="k2s2" bitsize="64" type="int"/>
+  <reg name="k3s2" bitsize="64" type="int"/>
+  <reg name="k4s2" bitsize="64" type="int"/>
+  <reg name="k5s2" bitsize="64" type="int"/>
+  <reg name="k6s2" bitsize="64" type="int"/>
+  <reg name="k7s2" bitsize="64" type="int"/>
+
+  <vector id="vec256_s" type="uint128" count="2"/>
+  <reg name="zmm0hs2"  bitsize="256" type="vec256_s"/>
+  <reg name="zmm1hs2"  bitsize="256" type="vec256_s"/>
+  <reg name="zmm2hs2"  bitsize="256" type="vec256_s"/>
+  <reg name="zmm3hs2"  bitsize="256" type="vec256_s"/>
+  <reg name="zmm4hs2"  bitsize="256" type="vec256_s"/>
+  <reg name="zmm5hs2"  bitsize="256" type="vec256_s"/>
+  <reg name="zmm6hs2"  bitsize="256" type="vec256_s"/>
+  <reg name="zmm7hs2"  bitsize="256" type="vec256_s"/>
+  <reg name="zmm8hs2"  bitsize="256" type="vec256_s"/>
+  <reg name="zmm9hs2"  bitsize="256" type="vec256_s"/>
+  <reg name="zmm10hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm11hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm12hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm13hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm14hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm15hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm16hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm17hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm18hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm19hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm20hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm21hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm22hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm23hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm24hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm25hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm26hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm27hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm28hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm29hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm30hs2" bitsize="256" type="vec256_s"/>
+  <reg name="zmm31hs2" bitsize="256" type="vec256_s"/>
+</feature>

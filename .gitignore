@@ -1083,6 +1083,7 @@
 /memcheck/tests/amd64/sh-mem-vec128
 /memcheck/tests/amd64/sh-mem-vec256
 /memcheck/tests/amd64/xsave-avx
+/memcheck/tests/amd64/xsave-avx512
 /memcheck/tests/amd64/rh2257546_128
 /memcheck/tests/amd64/rh2257546_256
 
@@ -1658,6 +1659,10 @@
 /none/tests/amd64/asorep
 /none/tests/amd64/avx-1
 /none/tests/amd64/avx2-1
+/none/tests/amd64/avx512-l1
+/none/tests/amd64/avx512-l2
+/none/tests/amd64/avx512-knl
+/none/tests/amd64/avx512-skx
 /none/tests/amd64/avx_estimate_insn
 /none/tests/amd64/bmi
 /none/tests/amd64/bt_flags

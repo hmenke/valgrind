@@ -938,7 +938,11 @@ void VG_(tt_tc_do_chaining) ( void* from__patch_addr,
    ie.to_fastEP  = to_fastEP;
    HWord from_offs = (HWord)( (UChar*)from__patch_addr
                               - (UChar*)from_tteC->tcptr );
+#ifdef AVX_512
+   vg_assert(from_offs < 200000/* let's say */);
+#else
    vg_assert(from_offs < 100000/* let's say */);
+#endif
    ie.from_offs  = (UInt)from_offs;
 
    /* This is the new to_ -> from_ backlink to add. */
@@ -1749,7 +1753,11 @@ void VG_(add_to_transtab)( const VexGuestExtents* vge,
    vg_assert(vge->n_used >= 1 && vge->n_used <= 3);
 
    /* 60000: should agree with N_TMPBUF in m_translate.c. */
+#ifdef AVX_512
+   vg_assert(code_len > 0 && code_len < 240000);
+#else
    vg_assert(code_len > 0 && code_len < 60000);
+#endif
 
    /* Generally stay sane */
    vg_assert(n_guest_instrs < 200); /* it can be zero, tho */

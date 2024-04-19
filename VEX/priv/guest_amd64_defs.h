@@ -171,6 +171,10 @@ extern void amd64g_dirtyhelper_CPUID_avx2 ( VexGuestAMD64State* st,
                                             ULong hasF16C, ULong hasRDRAND,
                                             ULong hasRDSEED );
 
+#ifdef AVX_512
+extern void  amd64g_dirtyhelper_CPUID_avx512_KNL ( VexGuestAMD64State* st );
+extern void  amd64g_dirtyhelper_CPUID_avx512_SKX ( VexGuestAMD64State* st );
+#endif
 
 extern void  amd64g_dirtyhelper_FINIT ( VexGuestAMD64State* );
 

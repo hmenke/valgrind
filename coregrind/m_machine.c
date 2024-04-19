@@ -984,6 +984,7 @@ Bool VG_(machine_get_hwcaps)( void )
 #elif defined(VGA_amd64)
    { Bool have_sse3, have_ssse3, have_cx8, have_cx16;
      Bool have_lzcnt, have_avx, have_bmi, have_avx2;
+     Bool have_avx512_er, have_avx512_vl;
      Bool have_fma3, have_fma4;
      Bool have_rdtscp, have_rdrand, have_f16c, have_rdseed;
      UInt eax, ebx, ecx, edx, max_basic, max_extended;
@@ -1093,13 +1094,17 @@ Bool VG_(machine_get_hwcaps)( void )
         have_fma4= (ecx & (1<<16)) != 0; /* True => have fma4 */
      }
 
-     /* Check for BMI1 and AVX2.  If we have AVX1 (plus OS support). */
+     /* Check for BMI1, AVX2 and AVX-512. If we have AVX1 (plus OS support). */
      have_bmi  = False;
      have_avx2 = False;
+     have_avx512_er = False;
+     have_avx512_vl = False;
      if (have_avx && max_basic >= 7) {
         VG_(cpuid)(7, 0, &eax, &ebx, &ecx, &edx);
         have_bmi  = (ebx & (1<<3)) != 0; /* True => have BMI1 */
         have_avx2 = (ebx & (1<<5)) != 0; /* True => have AVX2 */
+        have_avx512_er = (ebx & (1<<27)) != 0; /* True => have AVX-512 ER => KNL */
+        have_avx512_vl = (ebx & (1<<31)) != 0; /* True => have AVX-512 VL => SKX */
         have_rdseed = (ebx & (1<<18)) != 0; /* True => have RDSEED insns */
      }
 
@@ -1125,6 +1130,8 @@ Bool VG_(machine_get_hwcaps)( void )
                  | (have_f16c   ? VEX_HWCAPS_AMD64_F16C   : 0)
                  | (have_rdrand ? VEX_HWCAPS_AMD64_RDRAND : 0)
                  | (have_rdseed ? VEX_HWCAPS_AMD64_RDSEED : 0)
+                 | (have_avx512_er ? VEX_HWCAPS_AMD64_AVX512_KNL : 0)
+                 | (have_avx512_vl ? VEX_HWCAPS_AMD64_AVX512_SKX : 0)
                  | (have_fma3   ? VEX_HWCAPS_AMD64_FMA3   : 0)
                  | (have_fma4   ? VEX_HWCAPS_AMD64_FMA4   : 0);
 

@@ -751,7 +751,11 @@ AMD64Instr* AMD64Instr_CLoad ( AMD64CondCode cond, UChar szB,
    i->Ain.CLoad.szB  = szB;
    i->Ain.CLoad.addr = addr;
    i->Ain.CLoad.dst  = dst;
+#ifdef AVX_512
+   vassert(cond != Acc_ALWAYS && (szB == 1 || szB == 2 || szB == 4 || szB == 8));
+#else
    vassert(cond != Acc_ALWAYS && (szB == 4 || szB == 8));
+#endif
    return i;
 }
 AMD64Instr* AMD64Instr_CStore ( AMD64CondCode cond, UChar szB,
@@ -762,7 +766,11 @@ AMD64Instr* AMD64Instr_CStore ( AMD64CondCode cond, UChar szB,
    i->Ain.CStore.szB  = szB;
    i->Ain.CStore.src  = src;
    i->Ain.CStore.addr = addr;
+#ifdef AVX_512
+   vassert(cond != Acc_ALWAYS && (szB == 1 || szB == 2 || szB == 4 || szB == 8));
+#else
    vassert(cond != Acc_ALWAYS && (szB == 4 || szB == 8));
+#endif
    return i;
 }
 AMD64Instr* AMD64Instr_MovxLQ ( Bool syned, HReg src, HReg dst ) {
@@ -1213,25 +1221,51 @@ void ppAMD64Instr ( const AMD64Instr* i, Bool mode64 )
          ppHRegAMD64(i->Ain.CMov64.dst);
          return;
       case Ain_CLoad:
+      {
          vex_printf("if (%%rflags.%s) { ",
                     showAMD64CondCode(i->Ain.CLoad.cond));
+#ifdef AVX_512 
+         UChar size = '\0';
+         switch (i->Ain.CLoad.szB) {
+            case 1: size = 'b'; break;
+            case 2: size = 'w'; break;
+            case 4: size = 'l'; break;
+            case 8: size = 'q'; break;
+         }
+         vex_printf("mov%c ", size);
+#else
          vex_printf("mov%c ", i->Ain.CLoad.szB == 4 ? 'l' : 'q');
+#endif
          ppAMD64AMode(i->Ain.CLoad.addr);
          vex_printf(", ");
          (i->Ain.CLoad.szB == 4 ? ppHRegAMD64_lo32 : ppHRegAMD64)
             (i->Ain.CLoad.dst);
          vex_printf(" }");
          return;
+      }
       case Ain_CStore:
+      {
          vex_printf("if (%%rflags.%s) { ",
                     showAMD64CondCode(i->Ain.CStore.cond));
+#ifdef AVX_512 
+         UChar size = '\0';
+         switch (i->Ain.CStore.szB) {
+            case 1: size = 'b'; break;
+            case 2: size = 'w'; break;
+            case 4: size = 'l'; break;
+            case 8: size = 'q'; break;
+         }
+         vex_printf("mov%c ", size);
+#else
          vex_printf("mov%c ", i->Ain.CStore.szB == 4 ? 'l' : 'q');
+#endif
          (i->Ain.CStore.szB == 4 ? ppHRegAMD64_lo32 : ppHRegAMD64)
             (i->Ain.CStore.src);
          vex_printf(", ");
          ppAMD64AMode(i->Ain.CStore.addr);
          vex_printf(" }");
          return;
+      }
 
       case Ain_MovxLQ:
          vex_printf("mov%clq ", i->Ain.MovxLQ.syned ? 's' : 'z');
@@ -2138,7 +2172,11 @@ AMD64Instr* genMove_AMD64(HReg from, HReg to, Bool mode64)
 
 AMD64Instr* directReload_AMD64( AMD64Instr* i, HReg vreg, Short spill_off )
 {
+#ifdef AVX_512
+   vassert(spill_off >= 0 && spill_off < 40000); /* let's say */
+#else
    vassert(spill_off >= 0 && spill_off < 10000); /* let's say */
+#endif
 
    /* Deal with form: src=RMI_Reg, dst=Reg where src == vreg 
       Convert to: src=RMI_Mem, dst=Reg 
@@ -3371,8 +3409,13 @@ Int emit_AMD64Instr ( /*MB_MOD*/Bool* is_profInc,
    case Ain_CLoad: {
       vassert(i->Ain.CLoad.cond != Acc_ALWAYS);
 
+#ifdef AVX_512
+      vassert(i->Ain.CLoad.szB == 1 || i->Ain.CLoad.szB == 2 ||
+              i->Ain.CLoad.szB == 4 || i->Ain.CLoad.szB == 8);
+#else
       /* Only 32- or 64-bit variants are allowed. */
       vassert(i->Ain.CLoad.szB == 4 || i->Ain.CLoad.szB == 8);
+#endif
 
       /* Use ptmp for backpatching conditional jumps. */
       ptmp = NULL;
@@ -3402,8 +3445,13 @@ Int emit_AMD64Instr ( /*MB_MOD*/Bool* is_profInc,
          is 0x89 instead of 0x8B. */
       vassert(i->Ain.CStore.cond != Acc_ALWAYS);
 
+#ifdef AVX_512
+      vassert(i->Ain.CLoad.szB == 1 || i->Ain.CLoad.szB == 2 ||
+              i->Ain.CLoad.szB == 4 || i->Ain.CLoad.szB == 8);
+#else
       /* Only 32- or 64-bit variants are allowed. */
       vassert(i->Ain.CStore.szB == 4 || i->Ain.CStore.szB == 8);
+#endif
 
       /* Use ptmp for backpatching conditional jumps. */
       ptmp = NULL;

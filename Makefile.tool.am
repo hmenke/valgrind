@@ -7,6 +7,24 @@ include $(top_srcdir)/Makefile.all.am
 # <tool>-<platform> stuff
 #----------------------------------------------------------------------------
 
+if BUILD_AVX512_TESTS
+TOOL_DEPENDENCIES_@VGCONF_PLATFORM_PRI_CAPS@ = \
+	$(top_builddir)/coregrind/libcoregrind-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+	$(top_builddir)/VEX/libvex-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+	$(top_builddir)/VEX/libvex512f-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+	$(top_builddir)/VEX/libvex512knl-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+	$(top_builddir)/VEX/libvex512skx-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+	$(top_builddir)/VEX/libvex512icl-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a
+if VGCONF_HAVE_PLATFORM_SEC
+TOOL_DEPENDENCIES_@VGCONF_PLATFORM_SEC_CAPS@ = \
+	$(top_builddir)/coregrind/libcoregrind-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a \
+	$(top_builddir)/VEX/libvex-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a \
+	$(top_builddir)/VEX/libvex512f-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a \
+	$(top_builddir)/VEX/libvex512knl-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a \
+	$(top_builddir)/VEX/libvex512skx-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a \
+	$(top_builddir)/VEX/libvex512icl-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a
+endif
+else
 TOOL_DEPENDENCIES_@VGCONF_PLATFORM_PRI_CAPS@ = \
 	$(top_builddir)/coregrind/libcoregrind-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
 	$(top_builddir)/VEX/libvex-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a
@@ -14,6 +32,8 @@ if VGCONF_HAVE_PLATFORM_SEC
 TOOL_DEPENDENCIES_@VGCONF_PLATFORM_SEC_CAPS@ = \
 	$(top_builddir)/coregrind/libcoregrind-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a \
 	$(top_builddir)/VEX/libvex-@VGCONF_ARCH_SEC@-@VGCONF_OS@.a
+endif
+
 endif
 
 TOOL_LDADD_COMMON = -lgcc
