@@ -1232,7 +1232,7 @@ void ppAMD64Instr ( const AMD64Instr* i, Bool mode64 )
             case 4: size = 'l'; break;
             case 8: size = 'q'; break;
          }
-         vex_printf("mov%c ", size);
+         vex_printf(i->Ain.CLoad.szB == 8 ? "mov%c " : "movz%cq ", size);
 #else
          vex_printf("mov%c ", i->Ain.CLoad.szB == 4 ? 'l' : 'q');
 #endif
@@ -3425,13 +3425,29 @@ Int emit_AMD64Instr ( /*MB_MOD*/Bool* is_profInc,
       ptmp = p; /* fill in this bit later */
       *p++ = 0; /* # of bytes to jump over; don't know how many yet. */
 
-      /* Now the load.  Either a normal 64 bit load or a normal 32 bit
-         load, which, by the default zero-extension rule, zeroes out
-         the upper half of the destination, as required. */
-      rex = rexAMode_M(i->Ain.CLoad.dst, i->Ain.CLoad.addr);
-      *p++ = i->Ain.CLoad.szB == 4 ? clearWBit(rex) : rex;
-      *p++ = 0x8B;
-      p = doAMode_M(p, i->Ain.CLoad.dst, i->Ain.CLoad.addr);
+      /* Now the load. */
+      switch (i->Ain.CLoad.szB) {
+         case 8: case 4: {
+            /* Either a normal 64 bit load or a normal 32 bit load, which, by
+               the default zero-extension rule, zeroes out the upper half of the
+               destination, as required. */
+            rex = rexAMode_M(i->Ain.CLoad.dst, i->Ain.CLoad.addr);
+            *p++ = i->Ain.CLoad.szB == 4 ? clearWBit(rex) : rex;
+            *p++ = 0x8B;
+            p = doAMode_M(p, i->Ain.CLoad.dst, i->Ain.CLoad.addr);
+            break;
+         }
+         case 2: case 1: {
+            // Emit movzwq or movzbq
+            *p++ = rexAMode_M(i->Ain.CLoad.dst, i->Ain.CLoad.addr);
+            *p++ = 0x0F;
+            *p++ = i->Ain.CLoad.szB == 2 ? 0xB7 : 0xB6;
+            p = doAMode_M(p, i->Ain.CLoad.dst, i->Ain.CLoad.addr);
+            break;
+         }
+         default:
+            goto bad;
+      }
 
       /* Fix up the conditional branch */
       Int delta = p - ptmp;
@@ -3441,13 +3457,11 @@ Int emit_AMD64Instr ( /*MB_MOD*/Bool* is_profInc,
    }
 
    case Ain_CStore: {
-      /* AFAICS this is identical to Ain_CLoad except that the opcode
-         is 0x89 instead of 0x8B. */
       vassert(i->Ain.CStore.cond != Acc_ALWAYS);
 
 #ifdef AVX_512
-      vassert(i->Ain.CLoad.szB == 1 || i->Ain.CLoad.szB == 2 ||
-              i->Ain.CLoad.szB == 4 || i->Ain.CLoad.szB == 8);
+      vassert(i->Ain.CStore.szB == 1 || i->Ain.CStore.szB == 2 ||
+              i->Ain.CStore.szB == 4 || i->Ain.CStore.szB == 8);
 #else
       /* Only 32- or 64-bit variants are allowed. */
       vassert(i->Ain.CStore.szB == 4 || i->Ain.CStore.szB == 8);
@@ -3462,10 +3476,38 @@ Int emit_AMD64Instr ( /*MB_MOD*/Bool* is_profInc,
       *p++ = 0; /* # of bytes to jump over; don't know how many yet. */
 
       /* Now the store. */
-      rex = rexAMode_M(i->Ain.CStore.src, i->Ain.CStore.addr);
-      *p++ = i->Ain.CStore.szB == 4 ? clearWBit(rex) : rex;
-      *p++ = 0x89;
-      p = doAMode_M(p, i->Ain.CStore.src, i->Ain.CStore.addr);
+      switch (i->Ain.CStore.szB) {
+         case 8: case 4: {
+            rex = rexAMode_M(i->Ain.CStore.src, i->Ain.CStore.addr);
+            // The rex byte is redundant if it is 0x40; we could skip it.
+            *p++ = i->Ain.CStore.szB == 4 ? clearWBit(rex) : rex;
+            *p++ = 0x89;
+            p = doAMode_M(p, i->Ain.CStore.src, i->Ain.CStore.addr);
+            break;
+         }
+         case 2: {
+            // This is the same as the 8/4 case, except with rex.W = 0 and an
+            // additional 66 prefix.
+            rex = rexAMode_M(i->Ain.CStore.src, i->Ain.CStore.addr);
+            *p++ = 0x66;
+            // The rex byte is redundant if it is 0x40; we could skip it.
+            *p++ = clearWBit(rex);
+            *p++ = 0x89;
+            p = doAMode_M(p, i->Ain.CStore.src, i->Ain.CStore.addr);
+            break;
+         }
+         case 1: {
+            rex = rexAMode_M(i->Ain.CStore.src, i->Ain.CStore.addr);
+            // The rex byte must be retained even if it is 0x40, since this
+            // concerns 8-bit registers.
+            *p++ = clearWBit(rex);
+            *p++ = 0x88;
+            p = doAMode_M(p, i->Ain.CStore.src, i->Ain.CStore.addr);
+            break;
+         }
+         default:
+            goto bad;
+      }
 
       /* Fix up the conditional branch */
       Int delta = p - ptmp;

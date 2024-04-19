@@ -9,7 +9,7 @@ typedef  unsigned int            UInt;
 typedef  unsigned long int       UWord;
 typedef  unsigned long long int  ULong;
 
-#define IS_32_ALIGNED(_ptr) (0 == (0x1F & (UWord)(_ptr)))
+#define IS_64_ALIGNED(_ptr) (0 == (0x3F & (UWord)(_ptr)))
 
 typedef  union { UChar u8[64];  UInt u32[16];  }  ZMM;
 
@@ -18,7 +18,7 @@ typedef  struct {  ZMM a1; ZMM a2; ZMM a3; ZMM a4; ULong u64; }  Block;
 void showZMM ( ZMM* vec )
 {
    int i;
-   assert(IS_32_ALIGNED(vec));
+   assert(IS_64_ALIGNED(vec));
    for (i = 63; i >= 0; i--) {
       printf("%02x", (UInt)vec->u8[i]);
       if (i > 0 && 0 == ((i+0) & 7)) printf(".");
@@ -63,7 +63,7 @@ void randBlock ( Block* b )
     \
     __attribute__ ((noinline)) static void test_##_name ( void )   \
     { \
-       Block* b = memalign32(sizeof(Block)); \
+       Block* b = memalign64(sizeof(Block)); \
        randBlock(b); \
        printf("%s(reg)\n", #_name); \
        showBlock("before", b); \
@@ -2785,15 +2785,16 @@ int main ( void )
    DO_D( VPEXTRW_128_0x5 );
    DO_D( VPEXTRW_128_0x6 );
    DO_D( VPEXTRW_128_0x7 );
-   DO_D( VAESENC );
-   DO_D( VAESENCLAST );
-   DO_D( VAESDEC );
-   DO_D( VAESDECLAST );
-   DO_D( VAESIMC );
-   DO_D( VAESKEYGENASSIST_0x00 );
-   DO_D( VAESKEYGENASSIST_0x31 );
-   DO_D( VAESKEYGENASSIST_0xB2 );
-   DO_D( VAESKEYGENASSIST_0xFF );
+   // Core i5-1135G7 doesn't support the commented-out ones
+   //DO_D( VAESENC );
+   //DO_D( VAESENCLAST );
+   //DO_D( VAESDEC );
+   //DO_D( VAESDECLAST );
+   //DO_D( VAESIMC );
+   //DO_D( VAESKEYGENASSIST_0x00 );
+   //DO_D( VAESKEYGENASSIST_0x31 );
+   //DO_D( VAESKEYGENASSIST_0xB2 );
+   //DO_D( VAESKEYGENASSIST_0xFF );
    DO_D( VPCLMULQDQ_0x00 );
    DO_D( VPCLMULQDQ_0x01 );
    DO_D( VPCLMULQDQ_0x10 );
