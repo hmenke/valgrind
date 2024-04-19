@@ -153,7 +153,11 @@ main(int argc, char *argv[])
 
    // Iterate over all primops
    IROp first = Iop_INVALID + 1;
+#ifdef AVX_512
+   IROp last  = Iop_LAST_NOT_EVEX;
+#else
    IROp last  = Iop_LAST;
+#endif
    IROp opkind;
 
    if (0) {   // overwrite for debugging

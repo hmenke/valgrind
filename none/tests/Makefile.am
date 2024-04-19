@@ -343,12 +343,32 @@ else
  mq_LDADD		= -lrt
 endif
 libvex_test_CFLAGS      = $(AM_CFLAGS) @FLAG_FSANITIZE@
+if BUILD_AVX512_TESTS
 libvex_test_LDADD       = ../../VEX/libvex-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+								  ../../VEX/libvex512f-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+								  ../../VEX/libvex512knl-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+								  ../../VEX/libvex512skx-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+								  ../../VEX/libvex512icl-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a
+else
+libvex_test_LDADD       = ../../VEX/libvex-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a 
+endif
 			   @LIB_UBSAN@
 libvexmultiarch_test_CFLAGS= $(AM_CFLAGS) @FLAG_FSANITIZE@
+
+if BUILD_AVX512_TESTS
+libvexmultiarch_test_LDADD = \
+	../../VEX/libvexmultiarch-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
+	../../VEX/libvex-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a @LIB_UBSAN@ \
+	../../VEX/libvex512f-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a @LIB_UBSAN@ \
+	../../VEX/libvex512knl-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a @LIB_UBSAN@ \
+	../../VEX/libvex512skx-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a @LIB_UBSAN@ \
+	../../VEX/libvex512icl-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a @LIB_UBSAN@
+else
 libvexmultiarch_test_LDADD = \
 	../../VEX/libvexmultiarch-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a \
 	../../VEX/libvex-@VGCONF_ARCH_PRI@-@VGCONF_OS@.a @LIB_UBSAN@
+endif
+
 libvexmultiarch_test_SOURCES = libvex_test.c
 ppoll_alarm_LDADD	= -lpthread
 pselect_alarm_LDADD	= -lpthread

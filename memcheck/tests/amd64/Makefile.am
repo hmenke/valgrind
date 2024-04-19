@@ -42,6 +42,11 @@ EXTRA_DIST = \
 	xor-undef-amd64.stderr.exp-freebsd xor-undef-amd64.vgtest \
 	xsave-avx.vgtest xsave-avx.stdout.exp xsave-avx.stderr.exp
 
+if BUILD_AVX512_TESTS
+ EXTRA_DIST += \
+					xsave-avx512.vgtest xsave-avx512.stdout.exp xsave-avx512.stderr.exp
+endif
+
 check_PROGRAMS = \
 	bt_everything \
 	bug132146 \
@@ -57,6 +62,9 @@ check_PROGRAMS = \
 
 if BUILD_AVX_TESTS
  check_PROGRAMS += rh2257546_256 sh-mem-vec256 xsave-avx
+endif
+if BUILD_AVX512_TESTS
+ check_PROGRAMS += xsave-avx512
 endif
 if HAVE_ASM_CONSTRAINT_P
  check_PROGRAMS += insn-pcmpistri

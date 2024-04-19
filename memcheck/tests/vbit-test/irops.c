@@ -1197,8 +1197,14 @@ static irop_t irops[] = {
 
 /* Force compile time failure in case libvex_ir.h::IROp was updated
    and the irops array is out of synch */
+
+#ifdef AVX_512
+STATIC_ASSERT \
+      (sizeof irops / sizeof *irops == Iop_LAST_NOT_EVEX - Iop_INVALID - 1);
+#else
 STATIC_ASSERT \
       (sizeof irops / sizeof *irops == Iop_LAST - Iop_INVALID - 1);
+#endif
 
 /* Return a descriptor for OP, iff it exists and it is implemented
    for the current architecture. */

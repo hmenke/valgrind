@@ -1,0 +1,4 @@
+prog: xsave-avx512
+prereq: test -x xsave-avx512 && ../../../tests/x86_amd64_features amd64-avx
+vgopts: -q
+args: x

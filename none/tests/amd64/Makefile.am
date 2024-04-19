@@ -102,6 +102,22 @@ EXTRA_DIST = \
 	xadd.stderr.exp xadd.stdout.exp xadd.vgtest \
 	sse4-64.stdout.exp.freebsd sse4-64.stdout.exp-freebsd-clang
 
+if BUILD_AVX512_TESTS
+ EXTRA_DIST += \
+	avx512-l1.vgtest avx512-l1.stdout.exp avx512-l1.stderr.exp \
+	avx512-l2.vgtest avx512-l2.stdout.exp avx512-l2.stderr.exp
+endif
+
+if BUILD_AVX512_TESTS_ER
+ EXTRA_DIST += \
+	avx512-knl.vgtest avx512-knl.stdout.exp avx512-knl.stderr.exp
+endif
+
+if BUILD_AVX512_TESTS_VL
+ EXTRA_DIST += \
+	avx512-skx.vgtest avx512-skx.stdout.exp avx512-skx.stderr.exp
+endif
+
 check_PROGRAMS = \
 	allexec \
 	amd64locked \
@@ -139,6 +155,15 @@ if BUILD_AVX2_TESTS
 if !COMPILER_IS_ICC
   check_PROGRAMS += avx2-1
 endif
+endif
+if BUILD_AVX512_TESTS
+  check_PROGRAMS += avx512-l1 avx512-l2
+endif
+if BUILD_AVX512_TESTS_ER
+  check_PROGRAMS += avx512-knl
+endif
+if BUILD_AVX512_TESTS_VL
+  check_PROGRAMS += avx512-skx
 endif
 if BUILD_SSSE3_TESTS
  check_PROGRAMS += ssse3_misaligned

@@ -1,0 +1,3 @@
+prog: avx512-l1
+prereq: test -x avx512-l1 && ../../../tests/x86_amd64_features amd64-avx
+vgopts: -q
