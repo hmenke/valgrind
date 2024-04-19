@@ -2884,7 +2884,7 @@ static ULong dis_compress ( const VexAbiInfo* vbi, Prefix pfx, Long delta, UInt 
       DIP("%s", name_reg(rE));
       IRTemp rE_original = newTemp(INS_ARR[ins_id].arg_type[0]);
       assign(rE_original, get_reg(rE));
-      IRExpr* result = qop(compress_op, mkexpr(rE_original), get_reg(rG), getKReg(mask), mkU8(getZeroMode()));
+      IRExpr* result = qop(compress_op, mkexpr(rE_original), get_reg(rG), mask ? getKReg(mask) : mkU64(0), mkU8(getZeroMode()));
       UInt rV = 0;
       Put_Instr_Result(ins_id, result, rG, rV, rE, addr, modrm);
    } else {
@@ -2954,7 +2954,7 @@ static ULong dis_expand ( const VexAbiInfo* vbi, Prefix pfx, Long delta, UInt in
       DIP("%s", name_reg(rE));
       IRTemp rG_original = newTemp(INS_ARR[ins_id].arg_type[0]);
       assign(rG_original, get_reg(rG));
-      IRExpr* result = qop(expand_op, mkexpr(rG_original), get_reg(rE), getKReg(mask), mkU8(getZeroMode()));
+      IRExpr* result = qop(expand_op, mkexpr(rG_original), get_reg(rE), mask ? getKReg(mask) : mkU64(0), mkU8(getZeroMode()));
       Put_Instr_Result(ins_id, result, rG, 0, rE, addr, modrm);
    } else {
       addr = disAMode(&alen, vbi, pfx, delta, dis_buf, 0);
